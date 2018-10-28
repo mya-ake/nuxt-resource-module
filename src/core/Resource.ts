@@ -1,23 +1,29 @@
 import { AxiosInstance, AxiosResponse } from 'axios';
-import { ResourceConstructor, ResourceRequestConfig } from '@/interfaces';
+import {
+  MethodName,
+  RequestMethod,
+  ResourceConstructor,
+  ResourceRequestMethods,
+  ResourceRequestConfig,
+} from '@/interfaces';
 
-export class Resource {
+export class Resource implements ResourceRequestMethods {
   private axios: AxiosInstance;
-  get?: (config?: ResourceRequestConfig) => Promise<AxiosResponse | any>;
-  delete?: (config?: ResourceRequestConfig) => Promise<AxiosResponse | any>;
-  head?: (config?: ResourceRequestConfig) => Promise<AxiosResponse | any>;
-  post?: (config?: ResourceRequestConfig) => Promise<AxiosResponse | any>;
-  put?: (config?: ResourceRequestConfig) => Promise<AxiosResponse | any>;
-  patch?: (config?: ResourceRequestConfig) => Promise<AxiosResponse | any>;
+  get?: RequestMethod;
+  delete?: RequestMethod;
+  head?: RequestMethod;
+  post?: RequestMethod;
+  put?: RequestMethod;
+  patch?: RequestMethod;
 
   constructor({ axios, methods = ['get'] }: ResourceConstructor) {
     this.axios = axios;
     this.buildMethods(methods);
   }
 
-  private buildMethods(methodNames: string[]) {
+  private buildMethods(methodNames: MethodName[]) {
     const _this = this;
-    methodNames.forEach(methodName => {
+    methodNames.forEach((methodName: MethodName) => {
       Object.defineProperty(this, methodName, {
         get() {
           return _this.createMethod(methodName);
@@ -26,10 +32,10 @@ export class Resource {
     });
   }
 
-  private createMethod(methodName: string): Function {
+  private createMethod(methodName: MethodName): Function {
     return (async (
       args: ResourceRequestConfig = {},
-    ): Promise<AxiosResponse> => {
+    ): Promise<AxiosResponse | any> => {
       const response = await this.axios
         .request({
           ...args,
