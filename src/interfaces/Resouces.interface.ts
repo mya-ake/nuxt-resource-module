@@ -8,6 +8,7 @@ export type RequestMethod = (
 export interface ResourceConstructor {
   axios: AxiosInstance;
   methods: MethodName[];
+  isServer: boolean;
 }
 
 export interface ResourceRequestMethods {
@@ -23,3 +24,10 @@ export interface ResourceRequestConfig extends AxiosRequestConfig {
   dataMapper?: (response: AxiosResponse) => any;
   processor?: (response: AxiosResponse) => any;
 }
+
+export interface ResourceDelayRequestConfig {
+  method: MethodName;
+  config: ResourceRequestConfig;
+}
+
+export interface ResourceDealyProperty extends ResourceRequestMethods {}

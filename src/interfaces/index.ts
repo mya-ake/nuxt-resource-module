@@ -1,7 +1,1 @@
-export {
-  MethodName,
-  RequestMethod,
-  ResourceConstructor,
-  ResourceRequestConfig,
-  ResourceRequestMethods,
-} from './Resouces.interface';
+export * from './Resouces.interface';

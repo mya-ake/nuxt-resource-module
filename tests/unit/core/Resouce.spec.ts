@@ -1,4 +1,5 @@
 import { Resource } from './../../../src/core/Resource';
+import { MethodName } from './../../../src/interfaces';
 import axios, { AxiosRequestConfig } from 'axios';
 
 describe('core/Resource', () => {
@@ -7,9 +8,10 @@ describe('core/Resource', () => {
   beforeEach(() => {
     spyRequest = jest.spyOn(axios, 'request');
 
-    const methodNames = ['get', 'post'];
+    const methodNames = ['get', 'post'] as MethodName[];
     resource = new Resource({
       axios,
+      isServer: false,
       methods: methodNames,
     });
   });
@@ -19,6 +21,12 @@ describe('core/Resource', () => {
       expect.assertions(2);
       expect(resource).toHaveProperty('get');
       expect(resource).toHaveProperty('post');
+    });
+
+    it('created delay request methods', () => {
+      expect.assertions(2);
+      expect(resource.delay).toHaveProperty('get');
+      expect(resource.delay).toHaveProperty('post');
     });
   });
 
