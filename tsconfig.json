@@ -10,12 +10,13 @@
     "experimentalDecorators": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
+    "noImplicitThis": false,
     "baseUrl": ".",
-    "types": ["jest"],
+    "types": ["jest", "node", "lodash"],
     "paths": {
       "@/*": ["src/*"]
     },
-    "lib": ["dom", "es2015.promise", "es5"]
+    "lib": ["dom", "es2015.promise", "es5", "es2017.object"]
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules"]

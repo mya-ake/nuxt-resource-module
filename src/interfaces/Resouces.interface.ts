@@ -7,7 +7,7 @@ export type RequestMethod = (
 
 export interface ResourceConstructor {
   axios: AxiosInstance;
-  methods: MethodName[];
+  methods?: MethodName[];
   isServer: boolean;
 }
 
