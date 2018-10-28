@@ -1,1 +1,4 @@
-export { ResourceInterface } from './Resouces.interface';
+export {
+  ResourceConstructor,
+  ResourceRequestConfig,
+} from './Resouces.interface';

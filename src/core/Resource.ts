@@ -1,16 +1,16 @@
-import { AxiosInstance, AxiosResponse, AxiosRequestConfig } from 'axios';
-import { ResourceInterface } from '@/interfaces';
+import { AxiosInstance, AxiosResponse } from 'axios';
+import { ResourceConstructor, ResourceRequestConfig } from '@/interfaces';
 
 export class Resource {
   private axios: AxiosInstance;
-  get?: (config?: AxiosRequestConfig) => Promise<AxiosResponse>;
-  delete?: (config?: AxiosRequestConfig) => Promise<AxiosResponse>;
-  head?: (config?: AxiosRequestConfig) => Promise<AxiosResponse>;
-  post?: (config?: AxiosRequestConfig) => Promise<AxiosResponse>;
-  put?: (config?: AxiosRequestConfig) => Promise<AxiosResponse>;
-  patch?: (config?: AxiosRequestConfig) => Promise<AxiosResponse>;
+  get?: (config?: ResourceRequestConfig) => Promise<AxiosResponse | any>;
+  delete?: (config?: ResourceRequestConfig) => Promise<AxiosResponse | any>;
+  head?: (config?: ResourceRequestConfig) => Promise<AxiosResponse | any>;
+  post?: (config?: ResourceRequestConfig) => Promise<AxiosResponse | any>;
+  put?: (config?: ResourceRequestConfig) => Promise<AxiosResponse | any>;
+  patch?: (config?: ResourceRequestConfig) => Promise<AxiosResponse | any>;
 
-  constructor({ axios, methods = ['get'] }: ResourceInterface) {
+  constructor({ axios, methods = ['get'] }: ResourceConstructor) {
     this.axios = axios;
     this.buildMethods(methods);
   }
@@ -27,14 +27,20 @@ export class Resource {
   }
 
   private createMethod(methodName: string): Function {
-    return (async (args: AxiosRequestConfig = {}): Promise<AxiosResponse> => {
+    return (async (
+      args: ResourceRequestConfig = {},
+    ): Promise<AxiosResponse> => {
       const response = await this.axios
         .request({
           ...args,
           method: methodName,
         })
         .catch(err => err.response);
-      return response;
+      const { dataMapper, processor } = args;
+      if (typeof dataMapper === 'function') {
+        response.data = dataMapper(response);
+      }
+      return typeof processor === 'function' ? processor(response) : response;
     }).bind(this);
   }
 }
