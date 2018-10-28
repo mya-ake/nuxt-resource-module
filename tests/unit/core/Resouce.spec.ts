@@ -3,17 +3,17 @@ import { MethodName } from './../../../src/interfaces';
 import axios, { AxiosRequestConfig } from 'axios';
 
 describe('core/Resource', () => {
-  let spyRequest: jest.SpyInstance;
   let resource: Resource;
-  beforeEach(() => {
-    spyRequest = jest.spyOn(axios, 'request');
+  const spyRequest = jest.spyOn(axios, 'request');
 
+  beforeEach(() => {
     const methodNames = ['get', 'post'] as MethodName[];
     resource = new Resource({
       axios,
       isServer: false,
       methods: methodNames,
     });
+    spyRequest.mockClear();
   });
 
   describe('constructor', () => {
@@ -30,7 +30,7 @@ describe('core/Resource', () => {
     });
   });
 
-  describe('request methods, get, post', () => {
+  describe('request methods', () => {
     it('expect argument, when get method', async () => {
       await resource.get({ url: '/users' });
 
@@ -66,6 +66,68 @@ describe('core/Resource', () => {
       expect(response).toHaveProperty('isError');
       expect(response).toHaveProperty('data');
       expect(response.data).toEqual({ test: 'processor data' });
+    });
+  });
+
+  describe('delay methods', () => {
+    it('client', async () => {
+      await resource.delay.get({
+        url: '/users',
+      });
+
+      expect.assertions(2);
+      expect(spyRequest).not.toHaveBeenCalled();
+      expect(resource['delayRequestConfigs']).toEqual([
+        {
+          methodName: 'get',
+          config: { url: '/users' },
+        },
+      ]);
+    });
+
+    it('server', async () => {
+      resource = new Resource({
+        axios,
+        isServer: true,
+        methods: ['get'],
+      });
+      await resource.delay.get({
+        url: '/users',
+      });
+
+      expect.assertions(3);
+      expect(spyRequest).toHaveBeenCalledTimes(1);
+      expect(spyRequest).toHaveBeenCalledWith({ method: 'get', url: '/users' });
+      expect(resource['delayRequestConfigs']).toHaveLength(0);
+    });
+
+    it('runs requestDelayedRequest', async () => {
+      resource['delayRequestConfigs'] = [
+        {
+          methodName: 'get',
+          config: { url: '/users' },
+        },
+      ];
+
+      await resource.requestDelayedRequest();
+
+      expect.assertions(3);
+      expect(spyRequest).toHaveBeenCalledTimes(1);
+      expect(spyRequest).toHaveBeenCalledWith({ method: 'get', url: '/users' });
+      expect(resource['delayRequestConfigs']).toEqual([]);
+    });
+
+    it('runs clearDelayedRequest', async () => {
+      resource['delayRequestConfigs'] = [
+        {
+          methodName: 'get',
+          config: { url: '/users' },
+        },
+      ];
+
+      resource.clearDelayedRequest();
+
+      expect(resource['delayRequestConfigs']).toEqual([]);
     });
   });
 });

@@ -26,7 +26,7 @@ export interface ResourceRequestConfig extends AxiosRequestConfig {
 }
 
 export interface ResourceDelayRequestConfig {
-  method: MethodName;
+  methodName: MethodName;
   config: ResourceRequestConfig;
 }
 

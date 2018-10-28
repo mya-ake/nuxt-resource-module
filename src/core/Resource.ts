@@ -29,6 +29,23 @@ export class Resource implements ResourceRequestMethods {
     this.delay = this.buildDelayMethods(methods);
   }
 
+  public async requestDelayedRequest() {
+    const requests = this.delayRequestConfigs.map(({ methodName, config }) => {
+      const method = this[methodName];
+      if (typeof method !== 'function') {
+        throw new Error(`Undefined method: ${methodName}`);
+      }
+      return method(config);
+    });
+    const responses = await Promise.all(requests);
+    this.clearDelayedRequest();
+    return responses;
+  }
+
+  public clearDelayedRequest() {
+    this.delayRequestConfigs = [];
+  }
+
   private buildMethods(methodNames: MethodName[]) {
     const _this = this;
     methodNames.forEach((methodName: MethodName) => {
@@ -79,7 +96,7 @@ export class Resource implements ResourceRequestMethods {
       if (this.isServer) {
         return method(config);
       }
-      this.delayRequestConfigs.push({ method: methodName, config });
+      this.addDelayRequestConifg({ methodName, config });
       const response = { data: {} } as AxiosResponse;
       return this.processResponse(response, config);
     }).bind(this);
@@ -94,5 +111,12 @@ export class Resource implements ResourceRequestMethods {
       response.data = dataMapper(response);
     }
     return typeof processor === 'function' ? processor(response) : response;
+  }
+
+  private addDelayRequestConifg({
+    methodName,
+    config,
+  }: ResourceDelayRequestConfig) {
+    this.delayRequestConfigs.push({ methodName, config });
   }
 }

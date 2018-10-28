@@ -11,7 +11,7 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "baseUrl": ".",
-    "types": ["jest", "node"],
+    "types": ["jest"],
     "paths": {
       "@/*": ["src/*"]
     },
