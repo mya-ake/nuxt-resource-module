@@ -1,5 +1,10 @@
 # Nuxt.js Resource Module
 
+## ⚠️Under development⚠️
+
+正常に動かない可能性があります。  
+There is a possibility that it does not move normally.
+
 ## Status
 
 [![CircleCI](https://circleci.com/gh/mya-ake/nuxt-resource-module/tree/master.svg?style=svg)](https://circleci.com/gh/mya-ake/nuxt-resource-module/tree/master)
