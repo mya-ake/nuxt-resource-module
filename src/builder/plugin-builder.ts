@@ -15,7 +15,11 @@ export default (resource: Resource) => {
             }
             const { data } = response;
             Object.entries(data).forEach(([key, value]) => {
-              vm.$set(vm, key, value);
+              if (key in vm) {
+                vm[key] = value;
+              } else {
+                vm.$set(vm, key, value);
+              }
             });
           });
         });
