@@ -56,7 +56,7 @@ export default (function (resource) {
                                             vm[key] = value;
                                         }
                                         else {
-                                            vm.$set(vm, key, value);
+                                            console.warn('[nuxt-resrouce-module]', "Please add " + key + " to the data property");
                                         }
                                     });
                                 });
