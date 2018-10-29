@@ -20,9 +20,10 @@
     "lint:fix": "tslint --config tslint.json --fix 'src/**/*.ts' 'tests/**/*.ts'",
     "test:unit": "jest --config jest.config.js",
     "test:unit:watch": "jest --config jest.config.js --watch",
+    "prepublish": "run-s lint test:unit build",
     "patch": "npm version patch",
-    "release": "run-s lint test:unit build standard-version",
-    "release:patch": "run-s lint test:unit build patch git:publish",
+    "release": "standard-version",
+    "release:patch": "run-s patch git:publish",
     "git:publish": "git push --follow-tags origin master && npm publish"
   },
   "devDependencies": {
