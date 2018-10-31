@@ -2,7 +2,7 @@ import Vue from 'vue';
 
 import { buildPlugin } from '<%= options.pluginSrc %>';
 
-export default ({ $axios }, inject) => {
+export default ({ app, $axios }, inject) => {
   if (typeof $axios === 'undefined') {
     throw new Error('Please install `@nuxt/aixos`.');
   }
@@ -11,6 +11,14 @@ export default ({ $axios }, inject) => {
     isServer: process.server
   });
 
+  // add plugin
   Vue.use(ResroucePlugin);
   inject('_resource', resource);
+
+  // clear delayed request
+  const { router } = app;
+  router.beforeEach((to, from, next) => {
+    resources.clearDelayedRequest();
+    next();
+  });
 };
