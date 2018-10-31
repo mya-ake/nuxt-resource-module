@@ -18,7 +18,7 @@ export default ({ app, $axios }, inject) => {
   // clear delayed request
   const { router } = app;
   router.beforeEach((to, from, next) => {
-    resources.clearDelayedRequest();
+    resource.clearDelayedRequest();
     next();
   });
 };
