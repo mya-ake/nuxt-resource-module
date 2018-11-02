@@ -34,7 +34,12 @@ module.exports = {
     '@nuxtjs/axios',
   ],
   // ...
-}
+
+  // options (See options section)
+  'resource-module': {
+    methods: ['get', 'post'],
+  },
+};
 ```
 
 ## Usage
@@ -66,9 +71,46 @@ async asyncData({ app, error }) {
 }
 ```
 
-## Options
+## Extending
 
 coming soon...
 
-- default processor
-- etc.
+## Options
+
+### methods
+
+- Default: `['get', 'delete', 'head', 'post', 'put', 'patch']`
+
+使うリクエストメソッドを定義できます。
+
+
+e.g.
+
+```JavaScript
+// nuxt.config.js
+module.exports = {
+  // ...
+  'resource-module': {
+    methods: ['get'],
+  },
+};
+```
+
+When
+
+```JavaScript
+async asyncData({ app }) {
+  // ok
+  const response = await app.$_resource.get({
+    url: '/users',
+  });
+
+  // undefined
+  const response = await app.$_resource.post({
+    url: '/users',
+    data: {
+      name: 'new user',
+    },
+  });
+},
+```
