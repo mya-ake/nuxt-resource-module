@@ -9,6 +9,7 @@ export default ({ app, $axios }, inject) => {
   const { resource, ResroucePlugin } = buildPlugin({
     axios: $axios,
     isServer: process.server,
+    methods: '<%= options.methods %>'.split(','),
   });
 
   // add plugin

@@ -1,1 +1,3 @@
-export * from './Resouces.interface';
+export * from './Common.type';
+export * from './Resouce.interface';
+export * from './ResourceModule.interface';

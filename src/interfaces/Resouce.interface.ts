@@ -1,15 +1,16 @@
 import { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 
-export type MethodName = 'get' | 'delete' | 'head' | 'post' | 'put' | 'patch';
-export type RequestMethod = (
-  config?: ResourceRequestConfig,
-) => Promise<AxiosResponse | any>;
+import { MethodName } from './Common.type';
 
 export interface ResourceConstructor {
   axios: AxiosInstance;
   methods?: MethodName[];
   isServer: boolean;
 }
+
+export type RequestMethod = (
+  config?: ResourceRequestConfig,
+) => Promise<AxiosResponse | any>;
 
 export interface ResourceRequestMethods {
   get?: RequestMethod;
