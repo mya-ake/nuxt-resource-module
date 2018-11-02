@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="0.3.0"></a>
+# [0.3.0](https://github.com/mya-ake/nuxt-resource-module/compare/v0.2.5...v0.3.0) (2018-11-02)
+
+
+### Features
+
+* Add methods option [#2](https://github.com/mya-ake/nuxt-resource-module/issues/2) ([4846559](https://github.com/mya-ake/nuxt-resource-module/commit/4846559))
+
+
+
 <a name="0.2.0"></a>
 # 0.2.0 (2018-10-29)
 
