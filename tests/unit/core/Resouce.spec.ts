@@ -1,6 +1,10 @@
 import { Resource } from './../../../src/core/Resource';
 import { MethodName } from './../../../src/interfaces';
-import axios, { AxiosRequestConfig } from 'axios';
+import axios, {
+  AxiosRequestConfig,
+  CancelToken,
+  CancelTokenSource,
+} from 'axios';
 
 describe('core/Resource', () => {
   let resource: Resource;
@@ -128,6 +132,45 @@ describe('core/Resource', () => {
       resource.clearDelayedRequest();
 
       expect(resource['delayRequestConfigs']).toEqual([]);
+    });
+  });
+
+  describe('cancel methods', () => {
+    it('runs createCancelToken', () => {
+      const token = resource['createCancelToken']('/users');
+
+      expect.assertions(2);
+      expect(token).toBeInstanceOf(axios.CancelToken);
+      expect(resource['cancelSources'].has('/users')).toBe(true);
+    });
+
+    it('runs deleteCancelToken', () => {
+      resource['createCancelToken']('/users');
+      resource['deleteCancelToken']('/users');
+      expect(resource['cancelSources'].has('/users')).toBe(false);
+    });
+
+    it('cancel method', () => {
+      const mockFunc = jest.fn();
+      const source = {
+        cancel: mockFunc,
+      } as any;
+      resource['cancelSources'].set('/users', source);
+      resource.cancel('/users');
+
+      expect(mockFunc).toHaveBeenCalledTimes(1);
+    });
+
+    it('cancelAll method', () => {
+      const mockFunc = jest.fn();
+      const source = {
+        cancel: mockFunc,
+      } as any;
+      resource['cancelSources'].set('/users', source);
+      resource['cancelSources'].set('/posts', source);
+      resource.cancelAll();
+
+      expect(mockFunc).toHaveBeenCalledTimes(2);
     });
   });
 });

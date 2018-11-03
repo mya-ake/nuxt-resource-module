@@ -1,4 +1,4 @@
-import { AxiosInstance, AxiosResponse } from 'axios';
+import axios, { AxiosInstance, AxiosResponse, CancelTokenSource } from 'axios';
 import {
   MethodName,
   RequestMethod,
@@ -13,6 +13,7 @@ export class Resource implements ResourceRequestMethods {
   private axios: AxiosInstance;
   private isServer: boolean;
   private delayRequestConfigs: ResourceDelayRequestConfig[];
+  private cancelSources: Map<string, CancelTokenSource>;
   delay: ResourceDealyProperty;
   get?: RequestMethod;
   delete?: RequestMethod;
@@ -25,6 +26,7 @@ export class Resource implements ResourceRequestMethods {
     this.axios = axios;
     this.isServer = isServer;
     this.delayRequestConfigs = [];
+    this.cancelSources = new Map();
     this.buildMethods(methods);
     this.delay = this.buildDelayMethods(methods);
   }
@@ -40,10 +42,6 @@ export class Resource implements ResourceRequestMethods {
     const responses = await Promise.all(requests);
     this.clearDelayedRequest();
     return responses;
-  }
-
-  public clearDelayedRequest() {
-    this.delayRequestConfigs = [];
   }
 
   private buildMethods(methodNames: MethodName[]) {
@@ -118,5 +116,34 @@ export class Resource implements ResourceRequestMethods {
     config,
   }: ResourceDelayRequestConfig) {
     this.delayRequestConfigs.push({ methodName, config });
+  }
+
+  public clearDelayedRequest() {
+    this.delayRequestConfigs = [];
+  }
+
+  private createCancelToken(url: string) {
+    const source = axios.CancelToken.source();
+    this.cancelSources.set(url, source);
+    return source.token;
+  }
+
+  private deleteCancelToken(url: string) {
+    this.cancelSources.delete(url);
+  }
+
+  public cancel(url: string) {
+    const source = this.cancelSources.get(url);
+    if (!source) {
+      return;
+    }
+    source.cancel();
+    this.deleteCancelToken(url);
+  }
+
+  public cancelAll() {
+    this.cancelSources.forEach((source, url) => {
+      this.cancel(url);
+    });
   }
 }
