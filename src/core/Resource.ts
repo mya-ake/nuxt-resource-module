@@ -1,20 +1,33 @@
-import axios, { AxiosInstance, AxiosResponse, CancelTokenSource } from 'axios';
+import axios, {
+  AxiosInstance,
+  AxiosResponse,
+  CancelTokenSource,
+  CancelToken,
+} from 'axios';
 import {
   MethodName,
   RequestMethod,
   ResourceConstructor,
   ResourceRequestMethods,
   ResourceRequestConfig,
-  ResourceDealyProperty,
+  ResourceDelayProperty,
+  ResourceMayBeCancelProperty,
   ResourceDelayRequestConfig,
 } from '@/interfaces';
+
+const createDefaultResourceRequestConfig = (): ResourceRequestConfig => {
+  return {
+    url: '',
+  };
+};
 
 export class Resource implements ResourceRequestMethods {
   private axios: AxiosInstance;
   private isServer: boolean;
   private delayRequestConfigs: ResourceDelayRequestConfig[];
   private cancelSources: Map<string, CancelTokenSource>;
-  delay: ResourceDealyProperty;
+  delay: ResourceDelayProperty;
+  mayBeCancel: ResourceMayBeCancelProperty;
   get?: RequestMethod;
   delete?: RequestMethod;
   head?: RequestMethod;
@@ -29,6 +42,7 @@ export class Resource implements ResourceRequestMethods {
     this.cancelSources = new Map();
     this.buildMethods(methods);
     this.delay = this.buildDelayMethods(methods);
+    this.mayBeCancel = this.buildMayBeCancelMethods(methods);
   }
 
   public async requestDelayedRequest() {
@@ -57,7 +71,7 @@ export class Resource implements ResourceRequestMethods {
 
   private createMethod(methodName: MethodName): Function {
     return (async (
-      config: ResourceRequestConfig = {},
+      config: ResourceRequestConfig = createDefaultResourceRequestConfig(),
     ): Promise<AxiosResponse | any> => {
       const response = await this.axios
         .request({
@@ -69,7 +83,7 @@ export class Resource implements ResourceRequestMethods {
     }).bind(this);
   }
 
-  private buildDelayMethods(methodNames: MethodName[]): ResourceDealyProperty {
+  private buildDelayMethods(methodNames: MethodName[]): ResourceDelayProperty {
     const delay = {};
     const _this = this;
     methodNames.forEach((methodName: MethodName) => {
@@ -83,20 +97,55 @@ export class Resource implements ResourceRequestMethods {
   }
 
   private createDelayMethod(methodName: MethodName): Function {
+    const method = this[methodName];
+    if (typeof method !== 'function') {
+      throw new Error(`Undefined method: ${methodName}`);
+    }
     return (async (
-      config: ResourceRequestConfig = {},
+      config: ResourceRequestConfig = createDefaultResourceRequestConfig(),
     ): Promise<AxiosResponse | any> => {
-      const method = this[methodName];
-      if (typeof method !== 'function') {
-        throw new Error(`Undefined method: ${methodName}`);
-      }
-
       if (this.isServer) {
         return method(config);
       }
+
       this.addDelayRequestConifg({ methodName, config });
       const response = { data: {} } as AxiosResponse;
       return this.processResponse(response, config);
+    }).bind(this);
+  }
+
+  private buildMayBeCancelMethods(
+    methodNames: MethodName[],
+  ): ResourceMayBeCancelProperty {
+    const mayBeCancel = {};
+    const _this = this;
+    methodNames.forEach((methodName: MethodName) => {
+      Object.defineProperty(mayBeCancel, methodName, {
+        get() {
+          return _this.createMayBeCancelMthod(methodName);
+        },
+      });
+    });
+    return mayBeCancel;
+  }
+
+  private createMayBeCancelMthod(methodName): Function {
+    const method = this[methodName];
+    if (typeof method !== 'function') {
+      throw new Error(`Undefined method: ${methodName}`);
+    }
+    return (async (
+      config: ResourceRequestConfig = createDefaultResourceRequestConfig(),
+    ): Promise<AxiosResponse | any> => {
+      const { url } = config;
+
+      const token = this.createCancelToken(url);
+      config.cancelToken = token;
+
+      const response = await method(config);
+
+      this.deleteCancelToken(url);
+      return response;
     }).bind(this);
   }
 
@@ -122,7 +171,7 @@ export class Resource implements ResourceRequestMethods {
     this.delayRequestConfigs = [];
   }
 
-  private createCancelToken(url: string) {
+  private createCancelToken(url: string): CancelToken {
     const source = axios.CancelToken.source();
     this.cancelSources.set(url, source);
     return source.token;

@@ -32,6 +32,12 @@ describe('core/Resource', () => {
       expect(resource.delay).toHaveProperty('get');
       expect(resource.delay).toHaveProperty('post');
     });
+
+    it('created mayBeCancel rquest methods', () => {
+      expect.assertions(2);
+      expect(resource.mayBeCancel).toHaveProperty('get');
+      expect(resource.mayBeCancel).toHaveProperty('post');
+    });
   });
 
   describe('request methods', () => {
@@ -136,6 +142,18 @@ describe('core/Resource', () => {
   });
 
   describe('cancel methods', () => {
+    it('expect argument, when get method', async () => {
+      await resource.mayBeCancel.get({ url: '/users' });
+
+      expect.assertions(2);
+      expect(spyRequest).toHaveBeenCalledTimes(1);
+      expect(spyRequest).toHaveBeenCalledWith({
+        method: 'get',
+        url: '/users',
+        cancelToken: expect.any(axios.CancelToken),
+      });
+    });
+
     it('runs createCancelToken', () => {
       const token = resource['createCancelToken']('/users');
 
