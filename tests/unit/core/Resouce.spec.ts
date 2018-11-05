@@ -176,7 +176,9 @@ describe('core/Resource', () => {
       resource['cancelSources'].set('/users', source);
       resource.cancel('/users');
 
+      expect.assertions(2);
       expect(mockFunc).toHaveBeenCalledTimes(1);
+      expect(resource['cancelSources'].size).toBe(0);
     });
 
     it('runs cancelAll', () => {
@@ -188,10 +190,12 @@ describe('core/Resource', () => {
       resource['cancelSources'].set('/posts', source);
       resource.cancelAll();
 
+      expect.assertions(2);
       expect(mockFunc).toHaveBeenCalledTimes(2);
+      expect(resource['cancelSources'].size).toBe(0);
     });
 
-    it('expect cancel response', async () => {
+    it('expect response when canceling', async () => {
       const request = resource.mayBeCancel.get({ url: '/users/may-be-cancel' });
       resource.cancel('/users/may-be-cancel');
       const response = await request;
