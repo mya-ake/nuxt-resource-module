@@ -16,10 +16,12 @@ export default ({ app, $axios }, inject) => {
   Vue.use(ResroucePlugin);
   inject('_resource', resource);
 
-  // clear delayed request
   const { router } = app;
   router.beforeEach((to, from, next) => {
+    // clear delayed request
     resource.clearDelayedRequest();
+    // cancel requests
+    resource.cancelAll();
     next();
   });
 };
