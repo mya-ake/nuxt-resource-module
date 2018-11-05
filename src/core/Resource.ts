@@ -1,19 +1,29 @@
-import { AxiosInstance, AxiosResponse } from 'axios';
+import axios, { AxiosInstance, CancelTokenSource, CancelToken } from 'axios';
 import {
   MethodName,
   RequestMethod,
   ResourceConstructor,
   ResourceRequestMethods,
   ResourceRequestConfig,
-  ResourceDealyProperty,
+  ResourceDelayProperty,
+  ResourceMayBeCancelProperty,
   ResourceDelayRequestConfig,
+  ResourceResponse,
 } from '@/interfaces';
+
+const createDefaultResourceRequestConfig = (): ResourceRequestConfig => {
+  return {
+    url: '',
+  };
+};
 
 export class Resource implements ResourceRequestMethods {
   private axios: AxiosInstance;
   private isServer: boolean;
   private delayRequestConfigs: ResourceDelayRequestConfig[];
-  delay: ResourceDealyProperty;
+  private cancelSources: Map<string, CancelTokenSource>;
+  delay: ResourceDelayProperty;
+  mayBeCancel: ResourceMayBeCancelProperty;
   get?: RequestMethod;
   delete?: RequestMethod;
   head?: RequestMethod;
@@ -25,8 +35,10 @@ export class Resource implements ResourceRequestMethods {
     this.axios = axios;
     this.isServer = isServer;
     this.delayRequestConfigs = [];
+    this.cancelSources = new Map();
     this.buildMethods(methods);
     this.delay = this.buildDelayMethods(methods);
+    this.mayBeCancel = this.buildMayBeCancelMethods(methods);
   }
 
   public async requestDelayedRequest() {
@@ -42,10 +54,6 @@ export class Resource implements ResourceRequestMethods {
     return responses;
   }
 
-  public clearDelayedRequest() {
-    this.delayRequestConfigs = [];
-  }
-
   private buildMethods(methodNames: MethodName[]) {
     const _this = this;
     methodNames.forEach((methodName: MethodName) => {
@@ -59,19 +67,34 @@ export class Resource implements ResourceRequestMethods {
 
   private createMethod(methodName: MethodName): Function {
     return (async (
-      config: ResourceRequestConfig = {},
-    ): Promise<AxiosResponse | any> => {
+      config: ResourceRequestConfig = createDefaultResourceRequestConfig(),
+    ): Promise<ResourceResponse | any> => {
       const response = await this.axios
         .request({
           ...config,
           method: methodName,
         })
-        .catch(err => err.response);
+        .then(
+          (response): ResourceResponse => {
+            return {
+              ...response,
+              canceled: false,
+            } as ResourceResponse;
+          },
+        )
+        .catch(
+          (err): ResourceResponse => {
+            return {
+              ...err.response,
+              canceled: axios.isCancel(err),
+            } as ResourceResponse;
+          },
+        );
       return this.processResponse(response, config);
     }).bind(this);
   }
 
-  private buildDelayMethods(methodNames: MethodName[]): ResourceDealyProperty {
+  private buildDelayMethods(methodNames: MethodName[]): ResourceDelayProperty {
     const delay = {};
     const _this = this;
     methodNames.forEach((methodName: MethodName) => {
@@ -85,27 +108,62 @@ export class Resource implements ResourceRequestMethods {
   }
 
   private createDelayMethod(methodName: MethodName): Function {
+    const method = this[methodName];
+    if (typeof method !== 'function') {
+      throw new Error(`Undefined method: ${methodName}`);
+    }
     return (async (
-      config: ResourceRequestConfig = {},
-    ): Promise<AxiosResponse | any> => {
-      const method = this[methodName];
-      if (typeof method !== 'function') {
-        throw new Error(`Undefined method: ${methodName}`);
-      }
-
+      config: ResourceRequestConfig = createDefaultResourceRequestConfig(),
+    ): Promise<ResourceResponse | any> => {
       if (this.isServer) {
         return method(config);
       }
+
       this.addDelayRequestConifg({ methodName, config });
-      const response = { data: {} } as AxiosResponse;
+      const response = { data: {} } as ResourceResponse;
       return this.processResponse(response, config);
     }).bind(this);
   }
 
+  private buildMayBeCancelMethods(
+    methodNames: MethodName[],
+  ): ResourceMayBeCancelProperty {
+    const mayBeCancel = {};
+    const _this = this;
+    methodNames.forEach((methodName: MethodName) => {
+      Object.defineProperty(mayBeCancel, methodName, {
+        get() {
+          return _this.createMayBeCancelMthod(methodName);
+        },
+      });
+    });
+    return mayBeCancel;
+  }
+
+  private createMayBeCancelMthod(methodName): Function {
+    const method = this[methodName];
+    if (typeof method !== 'function') {
+      throw new Error(`Undefined method: ${methodName}`);
+    }
+    return (async (
+      config: ResourceRequestConfig = createDefaultResourceRequestConfig(),
+    ): Promise<ResourceResponse | any> => {
+      const { url } = config;
+
+      const token = this.createCancelToken(url);
+      config.cancelToken = token;
+
+      const response = await method(config);
+
+      this.deleteCancelToken(url);
+      return response;
+    }).bind(this);
+  }
+
   private processResponse(
-    response: AxiosResponse,
+    response: ResourceResponse,
     config: ResourceRequestConfig,
-  ): AxiosResponse {
+  ): ResourceResponse {
     const { dataMapper, processor } = config;
     if (typeof dataMapper === 'function') {
       response.data = dataMapper(response);
@@ -118,5 +176,34 @@ export class Resource implements ResourceRequestMethods {
     config,
   }: ResourceDelayRequestConfig) {
     this.delayRequestConfigs.push({ methodName, config });
+  }
+
+  public clearDelayedRequest() {
+    this.delayRequestConfigs = [];
+  }
+
+  private createCancelToken(url: string): CancelToken {
+    const source = axios.CancelToken.source();
+    this.cancelSources.set(url, source);
+    return source.token;
+  }
+
+  private deleteCancelToken(url: string) {
+    this.cancelSources.delete(url);
+  }
+
+  public cancel(url: string) {
+    const source = this.cancelSources.get(url);
+    if (!source) {
+      return;
+    }
+    source.cancel();
+    this.deleteCancelToken(url);
+  }
+
+  public cancelAll() {
+    this.cancelSources.forEach((source, url) => {
+      this.cancel(url);
+    });
   }
 }

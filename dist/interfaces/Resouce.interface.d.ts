@@ -22,5 +22,5 @@ export interface ResourceDelayRequestConfig {
     methodName: MethodName;
     config: ResourceRequestConfig;
 }
-export interface ResourceDealyProperty extends ResourceRequestMethods {
+export interface ResourceDelayProperty extends ResourceRequestMethods {
 }

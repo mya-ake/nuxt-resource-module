@@ -1,9 +1,9 @@
-import { RequestMethod, ResourceConstructor, ResourceRequestMethods, ResourceDealyProperty } from '@/interfaces';
+import { RequestMethod, ResourceConstructor, ResourceRequestMethods, ResourceDelayProperty } from '@/interfaces';
 export declare class Resource implements ResourceRequestMethods {
     private axios;
     private isServer;
     private delayRequestConfigs;
-    delay: ResourceDealyProperty;
+    delay: ResourceDelayProperty;
     get?: RequestMethod;
     delete?: RequestMethod;
     head?: RequestMethod;

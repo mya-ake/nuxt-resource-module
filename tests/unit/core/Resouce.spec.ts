@@ -1,6 +1,10 @@
 import { Resource } from './../../../src/core/Resource';
 import { MethodName } from './../../../src/interfaces';
-import axios, { AxiosRequestConfig } from 'axios';
+import axios, {
+  AxiosRequestConfig,
+  CancelToken,
+  CancelTokenSource,
+} from 'axios';
 
 describe('core/Resource', () => {
   let resource: Resource;
@@ -27,6 +31,12 @@ describe('core/Resource', () => {
       expect.assertions(2);
       expect(resource.delay).toHaveProperty('get');
       expect(resource.delay).toHaveProperty('post');
+    });
+
+    it('created mayBeCancel rquest methods', () => {
+      expect.assertions(2);
+      expect(resource.mayBeCancel).toHaveProperty('get');
+      expect(resource.mayBeCancel).toHaveProperty('post');
     });
   });
 
@@ -128,6 +138,68 @@ describe('core/Resource', () => {
       resource.clearDelayedRequest();
 
       expect(resource['delayRequestConfigs']).toEqual([]);
+    });
+  });
+
+  describe('cancel methods', () => {
+    it('expect argument, when get method', async () => {
+      await resource.mayBeCancel.get({ url: '/users' });
+
+      expect.assertions(2);
+      expect(spyRequest).toHaveBeenCalledTimes(1);
+      expect(spyRequest).toHaveBeenCalledWith({
+        method: 'get',
+        url: '/users',
+        cancelToken: expect.any(axios.CancelToken),
+      });
+    });
+
+    it('runs createCancelToken', () => {
+      const token = resource['createCancelToken']('/users');
+
+      expect.assertions(2);
+      expect(token).toBeInstanceOf(axios.CancelToken);
+      expect(resource['cancelSources'].has('/users')).toBe(true);
+    });
+
+    it('runs deleteCancelToken', () => {
+      resource['createCancelToken']('/users');
+      resource['deleteCancelToken']('/users');
+      expect(resource['cancelSources'].has('/users')).toBe(false);
+    });
+
+    it('runs cancel', () => {
+      const mockFunc = jest.fn();
+      const source = {
+        cancel: mockFunc,
+      } as any;
+      resource['cancelSources'].set('/users', source);
+      resource.cancel('/users');
+
+      expect.assertions(2);
+      expect(mockFunc).toHaveBeenCalledTimes(1);
+      expect(resource['cancelSources'].size).toBe(0);
+    });
+
+    it('runs cancelAll', () => {
+      const mockFunc = jest.fn();
+      const source = {
+        cancel: mockFunc,
+      } as any;
+      resource['cancelSources'].set('/users', source);
+      resource['cancelSources'].set('/posts', source);
+      resource.cancelAll();
+
+      expect.assertions(2);
+      expect(mockFunc).toHaveBeenCalledTimes(2);
+      expect(resource['cancelSources'].size).toBe(0);
+    });
+
+    it('expect response when canceling', async () => {
+      const request = resource.mayBeCancel.get({ url: '/users/may-be-cancel' });
+      resource.cancel('/users/may-be-cancel');
+      const response = await request;
+      expect(response.canceled).toBe(true);
     });
   });
 });
