@@ -12,7 +12,7 @@ module.exports = {
   globals: {
     'ts-jest': {
       diagnostics: {
-        ignoreCodes: ['TS2722'],
+        ignoreCodes: ['TS2722', 'TS2532'],
       },
     },
   },

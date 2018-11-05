@@ -1,9 +1,4 @@
-import axios, {
-  AxiosInstance,
-  AxiosResponse,
-  CancelTokenSource,
-  CancelToken,
-} from 'axios';
+import axios, { AxiosInstance, CancelTokenSource, CancelToken } from 'axios';
 import {
   MethodName,
   RequestMethod,
@@ -13,6 +8,7 @@ import {
   ResourceDelayProperty,
   ResourceMayBeCancelProperty,
   ResourceDelayRequestConfig,
+  ResourceResponse,
 } from '@/interfaces';
 
 const createDefaultResourceRequestConfig = (): ResourceRequestConfig => {
@@ -72,13 +68,28 @@ export class Resource implements ResourceRequestMethods {
   private createMethod(methodName: MethodName): Function {
     return (async (
       config: ResourceRequestConfig = createDefaultResourceRequestConfig(),
-    ): Promise<AxiosResponse | any> => {
+    ): Promise<ResourceResponse | any> => {
       const response = await this.axios
         .request({
           ...config,
           method: methodName,
         })
-        .catch(err => err.response);
+        .then(
+          (response): ResourceResponse => {
+            return {
+              ...response,
+              canceled: false,
+            } as ResourceResponse;
+          },
+        )
+        .catch(
+          (err): ResourceResponse => {
+            return {
+              ...err.response,
+              canceled: axios.isCancel(err),
+            } as ResourceResponse;
+          },
+        );
       return this.processResponse(response, config);
     }).bind(this);
   }
@@ -103,13 +114,13 @@ export class Resource implements ResourceRequestMethods {
     }
     return (async (
       config: ResourceRequestConfig = createDefaultResourceRequestConfig(),
-    ): Promise<AxiosResponse | any> => {
+    ): Promise<ResourceResponse | any> => {
       if (this.isServer) {
         return method(config);
       }
 
       this.addDelayRequestConifg({ methodName, config });
-      const response = { data: {} } as AxiosResponse;
+      const response = { data: {} } as ResourceResponse;
       return this.processResponse(response, config);
     }).bind(this);
   }
@@ -136,7 +147,7 @@ export class Resource implements ResourceRequestMethods {
     }
     return (async (
       config: ResourceRequestConfig = createDefaultResourceRequestConfig(),
-    ): Promise<AxiosResponse | any> => {
+    ): Promise<ResourceResponse | any> => {
       const { url } = config;
 
       const token = this.createCancelToken(url);
@@ -150,9 +161,9 @@ export class Resource implements ResourceRequestMethods {
   }
 
   private processResponse(
-    response: AxiosResponse,
+    response: ResourceResponse,
     config: ResourceRequestConfig,
-  ): AxiosResponse {
+  ): ResourceResponse {
     const { dataMapper, processor } = config;
     if (typeof dataMapper === 'function') {
       response.data = dataMapper(response);

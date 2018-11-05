@@ -168,7 +168,7 @@ describe('core/Resource', () => {
       expect(resource['cancelSources'].has('/users')).toBe(false);
     });
 
-    it('cancel method', () => {
+    it('runs cancel', () => {
       const mockFunc = jest.fn();
       const source = {
         cancel: mockFunc,
@@ -179,7 +179,7 @@ describe('core/Resource', () => {
       expect(mockFunc).toHaveBeenCalledTimes(1);
     });
 
-    it('cancelAll method', () => {
+    it('runs cancelAll', () => {
       const mockFunc = jest.fn();
       const source = {
         cancel: mockFunc,
@@ -189,6 +189,13 @@ describe('core/Resource', () => {
       resource.cancelAll();
 
       expect(mockFunc).toHaveBeenCalledTimes(2);
+    });
+
+    it('expect cancel response', async () => {
+      const request = resource.mayBeCancel.get({ url: '/users/may-be-cancel' });
+      resource.cancel('/users/may-be-cancel');
+      const response = await request;
+      expect(response.canceled).toBe(true);
     });
   });
 });

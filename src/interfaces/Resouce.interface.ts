@@ -21,6 +21,9 @@ export interface ResourceRequestMethods {
   patch?: RequestMethod;
 }
 
+export interface ResourceDelayProperty extends ResourceRequestMethods {}
+export interface ResourceMayBeCancelProperty extends ResourceRequestMethods {}
+
 export interface ResourceRequestConfig extends AxiosRequestConfig {
   url: string;
   dataMapper?: (response: AxiosResponse) => any;
@@ -32,5 +35,6 @@ export interface ResourceDelayRequestConfig {
   config: ResourceRequestConfig;
 }
 
-export interface ResourceDelayProperty extends ResourceRequestMethods {}
-export interface ResourceMayBeCancelProperty extends ResourceRequestMethods {}
+export interface ResourceResponse extends AxiosResponse {
+  canceled: boolean;
+}
