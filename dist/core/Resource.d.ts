@@ -1,9 +1,11 @@
-import { RequestMethod, ResourceConstructor, ResourceRequestMethods, ResourceDelayProperty } from '@/interfaces';
+import { RequestMethod, ResourceConstructor, ResourceRequestMethods, ResourceDelayProperty, ResourceMayBeCancelProperty } from '@/interfaces';
 export declare class Resource implements ResourceRequestMethods {
     private axios;
     private isServer;
     private delayRequestConfigs;
+    private cancelSources;
     delay: ResourceDelayProperty;
+    mayBeCancel: ResourceMayBeCancelProperty;
     get?: RequestMethod;
     delete?: RequestMethod;
     head?: RequestMethod;
@@ -12,11 +14,17 @@ export declare class Resource implements ResourceRequestMethods {
     patch?: RequestMethod;
     constructor({ axios, methods, isServer }: ResourceConstructor);
     requestDelayedRequest(): Promise<any[]>;
-    clearDelayedRequest(): void;
     private buildMethods;
     private createMethod;
     private buildDelayMethods;
     private createDelayMethod;
+    private buildMayBeCancelMethods;
+    private createMayBeCancelMthod;
     private processResponse;
     private addDelayRequestConifg;
+    clearDelayedRequest(): void;
+    private createCancelToken;
+    private deleteCancelToken;
+    cancel(url: string): void;
+    cancelAll(): void;
 }

@@ -44,14 +44,22 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+import axios from 'axios';
+var createDefaultResourceRequestConfig = function () {
+    return {
+        url: '',
+    };
+};
 var Resource = /** @class */ (function () {
     function Resource(_a) {
         var axios = _a.axios, _b = _a.methods, methods = _b === void 0 ? ['get'] : _b, isServer = _a.isServer;
         this.axios = axios;
         this.isServer = isServer;
         this.delayRequestConfigs = [];
+        this.cancelSources = new Map();
         this.buildMethods(methods);
         this.delay = this.buildDelayMethods(methods);
+        this.mayBeCancel = this.buildMayBeCancelMethods(methods);
     }
     Resource.prototype.requestDelayedRequest = function () {
         return __awaiter(this, void 0, void 0, function () {
@@ -77,9 +85,6 @@ var Resource = /** @class */ (function () {
             });
         });
     };
-    Resource.prototype.clearDelayedRequest = function () {
-        this.delayRequestConfigs = [];
-    };
     Resource.prototype.buildMethods = function (methodNames) {
         var _this_1 = this;
         var _this = this;
@@ -94,14 +99,19 @@ var Resource = /** @class */ (function () {
     Resource.prototype.createMethod = function (methodName) {
         var _this_1 = this;
         return (function (config) {
-            if (config === void 0) { config = {}; }
+            if (config === void 0) { config = createDefaultResourceRequestConfig(); }
             return __awaiter(_this_1, void 0, void 0, function () {
                 var response;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0: return [4 /*yield*/, this.axios
                                 .request(__assign({}, config, { method: methodName }))
-                                .catch(function (err) { return err.response; })];
+                                .then(function (response) {
+                                return __assign({}, response, { canceled: false });
+                            })
+                                .catch(function (err) {
+                                return __assign({}, err.response, { canceled: axios.isCancel(err) });
+                            })];
                         case 1:
                             response = _a.sent();
                             return [2 /*return*/, this.processResponse(response, config)];
@@ -124,21 +134,59 @@ var Resource = /** @class */ (function () {
     };
     Resource.prototype.createDelayMethod = function (methodName) {
         var _this_1 = this;
+        var method = this[methodName];
+        if (typeof method !== 'function') {
+            throw new Error("Undefined method: " + methodName);
+        }
         return (function (config) {
-            if (config === void 0) { config = {}; }
+            if (config === void 0) { config = createDefaultResourceRequestConfig(); }
             return __awaiter(_this_1, void 0, void 0, function () {
-                var method, response;
+                var response;
                 return __generator(this, function (_a) {
-                    method = this[methodName];
-                    if (typeof method !== 'function') {
-                        throw new Error("Undefined method: " + methodName);
-                    }
                     if (this.isServer) {
                         return [2 /*return*/, method(config)];
                     }
                     this.addDelayRequestConifg({ methodName: methodName, config: config });
                     response = { data: {} };
                     return [2 /*return*/, this.processResponse(response, config)];
+                });
+            });
+        }).bind(this);
+    };
+    Resource.prototype.buildMayBeCancelMethods = function (methodNames) {
+        var mayBeCancel = {};
+        var _this = this;
+        methodNames.forEach(function (methodName) {
+            Object.defineProperty(mayBeCancel, methodName, {
+                get: function () {
+                    return _this.createMayBeCancelMthod(methodName);
+                },
+            });
+        });
+        return mayBeCancel;
+    };
+    Resource.prototype.createMayBeCancelMthod = function (methodName) {
+        var _this_1 = this;
+        var method = this[methodName];
+        if (typeof method !== 'function') {
+            throw new Error("Undefined method: " + methodName);
+        }
+        return (function (config) {
+            if (config === void 0) { config = createDefaultResourceRequestConfig(); }
+            return __awaiter(_this_1, void 0, void 0, function () {
+                var url, token, response;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            url = config.url;
+                            token = this.createCancelToken(url);
+                            config.cancelToken = token;
+                            return [4 /*yield*/, method(config)];
+                        case 1:
+                            response = _a.sent();
+                            this.deleteCancelToken(url);
+                            return [2 /*return*/, response];
+                    }
                 });
             });
         }).bind(this);
@@ -153,6 +201,31 @@ var Resource = /** @class */ (function () {
     Resource.prototype.addDelayRequestConifg = function (_a) {
         var methodName = _a.methodName, config = _a.config;
         this.delayRequestConfigs.push({ methodName: methodName, config: config });
+    };
+    Resource.prototype.clearDelayedRequest = function () {
+        this.delayRequestConfigs = [];
+    };
+    Resource.prototype.createCancelToken = function (url) {
+        var source = axios.CancelToken.source();
+        this.cancelSources.set(url, source);
+        return source.token;
+    };
+    Resource.prototype.deleteCancelToken = function (url) {
+        this.cancelSources.delete(url);
+    };
+    Resource.prototype.cancel = function (url) {
+        var source = this.cancelSources.get(url);
+        if (!source) {
+            return;
+        }
+        source.cancel();
+        this.deleteCancelToken(url);
+    };
+    Resource.prototype.cancelAll = function () {
+        var _this_1 = this;
+        this.cancelSources.forEach(function (source, url) {
+            _this_1.cancel(url);
+        });
     };
     return Resource;
 }());
