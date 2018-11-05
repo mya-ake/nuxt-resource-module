@@ -1,9 +1,6 @@
 # Nuxt.js Resource Module
 
-## ⚠️Under development⚠️
-
-正常に動かない可能性があります。  
-There is a possibility that it does not move normally.
+## ⚠️Alpha version
 
 ## Status
 
@@ -16,6 +13,8 @@ There is a possibility that it does not move normally.
   - リンクをクリックしてすぐに遷移します
   - 遷移後リクエストを行い、response.dataをそのままdataプロパティにマッピングします
   - SSR 時は遅延させずにそのままリクエストします
+- キャンセル可能なリクエストを簡単に作れます
+  - 遷移するときはリクエスト中のリクエストを自動でキャンセルします
 - リクエスト時にレスポンスを加工する処理を追加できます
 
 ## Install
@@ -45,29 +44,55 @@ module.exports = {
 ## Usage
 
 ```JavaScript
-async asyncData({ app, error }) {
-  // default request
-  const response = await app.$_resource.get({
-    url: '/users',
-  });
+export default {
+  // asyncData
+  async asyncData({ app, error }) {
+    // default request
+    const response = await app.$_resource.get({
+      url: '/users',
+    });
 
-  // delay request
-  const response = await app.$_resource.delay.get({
-    url: '/users',
-    // response.data mapper
-    dataMapper(response: AxiosResponse) {
-      const { data } = response;
-      return data ? { users: data.users } : { users: [] };
-    },
+    // delay request
+    const response = await app.$_resource.delay.get({
+      url: '/users',
+      // response.data mapper
+      dataMapper(response: AxiosResponse) {
+        const { data } = response;
+        return data ? { users: data.users } : { users: [] };
+      },
 
-    // response 
-    processor(response: AxiosResponse) {
-      if (response.status !== 200) {
-        error({ statusCode: response.status, message: 'Request error' })
+      // response 
+      processor(response: AxiosResponse) {
+        if (response.status !== 200) {
+          error({ statusCode: response.status, message: 'Request error' })
+        }
+        return response;
+      },
+    });
+  },
+
+  // methods
+  methods: {
+    // cancel
+    async requestSuggestion() {
+      this.$_resource.cancel('/users');
+      const response = await this.$_resource.mayBeCancel.get({ url: '/users' });
+      if (response.canceled === true) {
+        // when cancel
       }
-      return response;
     },
-  });
+  },
+}
+
+// Vuex
+export const actions = {
+  async request() {
+      this.$_resource.cancel('/users');
+      const response = await this.$_resource.mayBeCancel.get({ url: '/users' });
+      if (response.canceled === true) {
+        // when cancel
+      }
+  }
 }
 ```
 
