@@ -60,6 +60,7 @@ var Resource = /** @class */ (function () {
         this.buildMethods(methods);
         this.delay = this.buildDelayMethods(methods);
         this.mayBeCancel = this.buildMayBeCancelMethods(methods);
+        this.extendings = {};
     }
     Resource.prototype.requestDelayedRequest = function () {
         return __awaiter(this, void 0, void 0, function () {
@@ -107,7 +108,7 @@ var Resource = /** @class */ (function () {
                         case 0: return [4 /*yield*/, this.axios
                                 .request(__assign({}, config, { method: methodName }))
                                 .then(function (response) {
-                                return __assign({}, response, { canceled: false });
+                                return __assign({}, response, { canceled: false, delayed: false });
                             })
                                 .catch(function (err) {
                                 return __assign({}, err.response, { canceled: axios.isCancel(err) });
@@ -147,7 +148,7 @@ var Resource = /** @class */ (function () {
                         return [2 /*return*/, method(config)];
                     }
                     this.addDelayRequestConifg({ methodName: methodName, config: config });
-                    response = { data: {} };
+                    response = { delayed: true, canceled: false };
                     return [2 /*return*/, this.processResponse(response, config)];
                 });
             });
@@ -196,7 +197,13 @@ var Resource = /** @class */ (function () {
         if (typeof dataMapper === 'function') {
             response.data = dataMapper(response);
         }
-        return typeof processor === 'function' ? processor(response) : response;
+        if (typeof this.extendings.eachProcessor === 'function') {
+            response = this.extendings.eachProcessor(response);
+        }
+        if (typeof processor === 'function') {
+            response = processor(response);
+        }
+        return response;
     };
     Resource.prototype.addDelayRequestConifg = function (_a) {
         var methodName = _a.methodName, config = _a.config;
@@ -226,6 +233,9 @@ var Resource = /** @class */ (function () {
         this.cancelSources.forEach(function (source, url) {
             _this_1.cancel(url);
         });
+    };
+    Resource.prototype.setEachProcessor = function (processor) {
+        this.extendings.eachProcessor = processor;
     };
     return Resource;
 }());

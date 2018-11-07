@@ -4,6 +4,7 @@ export declare class Resource implements ResourceRequestMethods {
     private isServer;
     private delayRequestConfigs;
     private cancelSources;
+    private extendings;
     delay: ResourceDelayProperty;
     mayBeCancel: ResourceMayBeCancelProperty;
     get?: RequestMethod;
@@ -27,4 +28,5 @@ export declare class Resource implements ResourceRequestMethods {
     private deleteCancelToken;
     cancel(url: string): void;
     cancelAll(): void;
+    setEachProcessor(processor: Function): void;
 }
