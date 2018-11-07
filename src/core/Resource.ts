@@ -9,6 +9,7 @@ import {
   ResourceMayBeCancelProperty,
   ResourceDelayRequestConfig,
   ResourceResponse,
+  ResourceExtendings,
 } from '@/interfaces';
 
 const createDefaultResourceRequestConfig = (): ResourceRequestConfig => {
@@ -22,6 +23,7 @@ export class Resource implements ResourceRequestMethods {
   private isServer: boolean;
   private delayRequestConfigs: ResourceDelayRequestConfig[];
   private cancelSources: Map<string, CancelTokenSource>;
+  private extendings: ResourceExtendings;
   delay: ResourceDelayProperty;
   mayBeCancel: ResourceMayBeCancelProperty;
   get?: RequestMethod;
@@ -39,6 +41,7 @@ export class Resource implements ResourceRequestMethods {
     this.buildMethods(methods);
     this.delay = this.buildDelayMethods(methods);
     this.mayBeCancel = this.buildMayBeCancelMethods(methods);
+    this.extendings = {};
   }
 
   public async requestDelayedRequest() {
@@ -120,7 +123,7 @@ export class Resource implements ResourceRequestMethods {
       }
 
       this.addDelayRequestConifg({ methodName, config });
-      const response = { data: {} } as ResourceResponse;
+      const response = { canceled: false } as ResourceResponse;
       return this.processResponse(response, config);
     }).bind(this);
   }
@@ -168,7 +171,13 @@ export class Resource implements ResourceRequestMethods {
     if (typeof dataMapper === 'function') {
       response.data = dataMapper(response);
     }
-    return typeof processor === 'function' ? processor(response) : response;
+    if (typeof this.extendings.eachProcessor === 'function') {
+      response = this.extendings.eachProcessor(response);
+    }
+    if (typeof processor === 'function') {
+      response = processor(response);
+    }
+    return response;
   }
 
   private addDelayRequestConifg({
@@ -205,5 +214,9 @@ export class Resource implements ResourceRequestMethods {
     this.cancelSources.forEach((source, url) => {
       this.cancel(url);
     });
+  }
+
+  public setEachProcessor(processor: Function) {
+    this.extendings.eachProcessor = processor;
   }
 }

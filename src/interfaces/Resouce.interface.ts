@@ -38,3 +38,7 @@ export interface ResourceDelayRequestConfig {
 export interface ResourceResponse extends AxiosResponse {
   canceled: boolean;
 }
+
+export interface ResourceExtendings {
+  eachProcessor?: Function;
+}

@@ -202,4 +202,38 @@ describe('core/Resource', () => {
       expect(response.canceled).toBe(true);
     });
   });
+
+  describe('sets methods', () => {
+    it('sets default processor', () => {
+      const processor = () => {};
+      resource.setEachProcessor(processor);
+
+      expect.assertions(2);
+      expect(resource['extendings']).toHaveProperty('eachProcessor');
+      expect(resource['extendings'].eachProcessor).toBe(processor);
+    });
+
+    it('called default processor', async () => {
+      const mockProcessor = jest.fn();
+      const processor = response => {
+        mockProcessor(response);
+        return { ...response, data: { test: 'response' } };
+      };
+      resource.setEachProcessor(processor);
+
+      const response = await resource.get({ url: '/users' });
+
+      expect.assertions(3);
+      expect(mockProcessor).toHaveBeenCalledTimes(1);
+      expect(mockProcessor).toHaveBeenCalledWith({
+        canceled: false,
+      });
+      expect(response).toEqual({
+        canceled: false,
+        data: {
+          test: 'response',
+        },
+      });
+    });
+  });
 });
