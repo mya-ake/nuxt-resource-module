@@ -82,6 +82,7 @@ export class Resource implements ResourceRequestMethods {
             return {
               ...response,
               canceled: false,
+              delayed: false,
             } as ResourceResponse;
           },
         )
@@ -123,7 +124,7 @@ export class Resource implements ResourceRequestMethods {
       }
 
       this.addDelayRequestConifg({ methodName, config });
-      const response = { canceled: false } as ResourceResponse;
+      const response = { delayed: true, canceled: false } as ResourceResponse;
       return this.processResponse(response, config);
     }).bind(this);
   }

@@ -37,6 +37,7 @@ export interface ResourceDelayRequestConfig {
 
 export interface ResourceResponse extends AxiosResponse {
   canceled: boolean;
+  delayed: boolean;
 }
 
 export interface ResourceExtendings {

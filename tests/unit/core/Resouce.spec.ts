@@ -81,11 +81,11 @@ describe('core/Resource', () => {
 
   describe('delay methods', () => {
     it('client', async () => {
-      await resource.delay.get({
+      const response = await resource.delay.get({
         url: '/users',
       });
 
-      expect.assertions(2);
+      expect.assertions(3);
       expect(spyRequest).not.toHaveBeenCalled();
       expect(resource['delayRequestConfigs']).toEqual([
         {
@@ -93,6 +93,7 @@ describe('core/Resource', () => {
           config: { url: '/users' },
         },
       ]);
+      expect(response.delayed).toBe(true);
     });
 
     it('server', async () => {
@@ -101,14 +102,15 @@ describe('core/Resource', () => {
         isServer: true,
         methods: ['get'],
       });
-      await resource.delay.get({
+      const response = await resource.delay.get({
         url: '/users',
       });
 
-      expect.assertions(3);
+      expect.assertions(4);
       expect(spyRequest).toHaveBeenCalledTimes(1);
       expect(spyRequest).toHaveBeenCalledWith({ method: 'get', url: '/users' });
       expect(resource['delayRequestConfigs']).toHaveLength(0);
+      expect(response.delayed).toBe(false);
     });
 
     it('runs requestDelayedRequest', async () => {
@@ -227,9 +229,11 @@ describe('core/Resource', () => {
       expect(mockProcessor).toHaveBeenCalledTimes(1);
       expect(mockProcessor).toHaveBeenCalledWith({
         canceled: false,
+        delayed: false,
       });
       expect(response).toEqual({
         canceled: false,
+        delayed: false,
         data: {
           test: 'response',
         },
