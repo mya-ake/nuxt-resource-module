@@ -56,13 +56,13 @@ export default {
     const response = await app.$_resource.delay.get({
       url: '/users',
       // response.data mapper
-      dataMapper(response: AxiosResponse) {
-        const { data } = response;
-        return data ? { users: data.users } : { users: [] };
+      dataMapper(response: ResourceResponse) {
+        const { delayed, data } = response;
+        return delayed ? { users: [] } : { users: data.users };
       },
 
       // response 
-      processor(response: AxiosResponse) {
+      processor(response: ResourceResponse) {
         if (response.status !== 200) {
           error({ statusCode: response.status, message: 'Request error' })
         }
@@ -98,7 +98,54 @@ export const actions = {
 
 ## Extending
 
-coming soon...
+
+### Each processor
+
+#### plubins/resource-module.js
+
+```JavaScript
+export default ({ app }) => {
+  const { $_resource } = app;
+  const eachProcessor = (response) => {
+    return {
+      status: response.status,
+      isError: response.status !== 200,
+      data: response.data,
+    };
+  };
+  $_resource.setEachProcessor(eachProcessor);
+};
+```
+
+#### nuxt.config.js
+```JavaScript
+module.exports = {
+  // ...
+  modules: [
+    'nuxt-resource-module', // required before @nuxtjs/axios
+    '@nuxtjs/axios',
+  ],
+  // ...
+
+  plugins: [
+    '~/plugins/resource-module',
+  ],
+};
+```
+
+#### application code
+```JavaScript
+export default {
+  async asyncData({ app }) {
+    const response = await app.$_resource.get({
+      url: '/users',
+    });
+    console.log(response) // { status: 200, isError: false, data: ... }
+  },
+};
+```
+
+
 
 ## Options
 
