@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="0.4.0"></a>
+# [0.4.0](https://github.com/mya-ake/nuxt-resource-module/compare/v0.3.1...v0.4.0) (2018-11-07)
+
+
+### Features
+
+* Add delayed property to ResourceResponse [#9](https://github.com/mya-ake/nuxt-resource-module/issues/9) ([73e86cb](https://github.com/mya-ake/nuxt-resource-module/commit/73e86cb))
+* add each processor [#6](https://github.com/mya-ake/nuxt-resource-module/issues/6) ([4d0eb8e](https://github.com/mya-ake/nuxt-resource-module/commit/4d0eb8e))
+
+
+
 <a name="0.3.1"></a>
 ## [0.3.1](https://github.com/mya-ake/nuxt-resource-module/compare/v0.3.0...v0.3.1) (2018-11-05)
 
