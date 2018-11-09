@@ -160,13 +160,13 @@ var Resource = /** @class */ (function () {
         methodNames.forEach(function (methodName) {
             Object.defineProperty(mayBeCancel, methodName, {
                 get: function () {
-                    return _this.createMayBeCancelMthod(methodName);
+                    return _this.createMayBeCancelMethod(methodName);
                 },
             });
         });
         return mayBeCancel;
     };
-    Resource.prototype.createMayBeCancelMthod = function (methodName) {
+    Resource.prototype.createMayBeCancelMethod = function (methodName) {
         var _this_1 = this;
         var method = this[methodName];
         if (typeof method !== 'function') {

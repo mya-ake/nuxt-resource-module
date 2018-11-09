@@ -137,14 +137,14 @@ export class Resource implements ResourceRequestMethods {
     methodNames.forEach((methodName: MethodName) => {
       Object.defineProperty(mayBeCancel, methodName, {
         get() {
-          return _this.createMayBeCancelMthod(methodName);
+          return _this.createMayBeCancelMethod(methodName);
         },
       });
     });
     return mayBeCancel;
   }
 
-  private createMayBeCancelMthod(methodName): Function {
+  private createMayBeCancelMethod(methodName): Function {
     const method = this[methodName];
     if (typeof method !== 'function') {
       throw new Error(`Undefined method: ${methodName}`);

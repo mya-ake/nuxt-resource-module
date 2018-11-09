@@ -20,7 +20,7 @@ export declare class Resource implements ResourceRequestMethods {
     private buildDelayMethods;
     private createDelayMethod;
     private buildMayBeCancelMethods;
-    private createMayBeCancelMthod;
+    private createMayBeCancelMethod;
     private processResponse;
     private addDelayRequestConifg;
     clearDelayedRequest(): void;
