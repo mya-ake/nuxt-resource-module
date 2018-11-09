@@ -1,6 +1,6 @@
 {
   "name": "nuxt-resource-module",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "@nuxtjs/axios based API request wrapper for Nuxt.js",
   "main": "dist/module.js",
   "types": "index.d.ts",
