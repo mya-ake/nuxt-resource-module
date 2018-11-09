@@ -175,7 +175,49 @@ It will be a request that can be canceled. Use with `$_resource.cancel()`.
 
 ### Types
 
-Coming soon...
+#### ResourceRequestConfig
+
+Extends [AxiosRequestConfig](https://github.com/axios/axios#request-config)
+
+```TypeScript
+export interface ResourceRequestConfig extends AxiosRequestConfig {
+  url: string;
+  dataMapper?: (response: ResourceResponse) => any;
+  processor?: (response: ResourceResponse) => any;
+}
+```
+
+e.g.
+
+```JavaScript
+{
+  url: '/users/search',  // require
+  params: { // Can also use axios config
+    query: 'Alice',
+  },
+  dataMapper(response) {  // option
+    const { delayed, data } = response;
+    return delayed ? { users: [] } : { users: data.users };
+  },
+  processor(response) { // option
+    if (response.status !== 200) {
+      error({ statusCode: response.status, message: 'Request error' })
+    }
+    return response;
+  },
+}
+```
+
+#### ResourceResponse
+
+Extends [AxiosResponse](https://github.com/axios/axios#response-schema)
+
+```TypeScript
+export interface ResourceResponse extends AxiosResponse {
+  canceled: boolean;
+  delayed: boolean;
+}
+```
 
 ## Extending
 
