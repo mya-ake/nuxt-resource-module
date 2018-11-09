@@ -20,8 +20,8 @@ export interface ResourceMayBeCancelProperty extends ResourceRequestMethods {
 }
 export interface ResourceRequestConfig extends AxiosRequestConfig {
     url: string;
-    dataMapper?: (response: AxiosResponse) => any;
-    processor?: (response: AxiosResponse) => any;
+    dataMapper?: (response: ResourceResponse) => any;
+    processor?: (response: ResourceResponse) => any;
 }
 export interface ResourceDelayRequestConfig {
     methodName: MethodName;
