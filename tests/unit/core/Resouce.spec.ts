@@ -143,9 +143,58 @@ describe('core/Resource', () => {
     });
   });
 
+  describe('delay methods, use request method', () => {
+    it('client', async () => {
+      const response = await resource.delay.request({
+        method: 'get',
+        url: '/users',
+      });
+
+      expect.assertions(3);
+      expect(spyRequest).not.toHaveBeenCalled();
+      expect(resource['delayRequestConfigs']).toEqual([
+        {
+          methodName: 'request',
+          config: { method: 'get', url: '/users' },
+        },
+      ]);
+      expect(response.delayed).toBe(true);
+    });
+
+    it('server', async () => {
+      resource = new Resource({
+        axios,
+        isServer: true,
+        methods: ['get'],
+      });
+      const response = await resource.delay.request({
+        method: 'get',
+        url: '/users',
+      });
+
+      expect.assertions(4);
+      expect(spyRequest).toHaveBeenCalledTimes(1);
+      expect(spyRequest).toHaveBeenCalledWith({ method: 'get', url: '/users' });
+      expect(resource['delayRequestConfigs']).toHaveLength(0);
+      expect(response.delayed).toBe(false);
+    });
+  });
+
   describe('cancel methods', () => {
     it('expect argument, when get method', async () => {
       await resource.mayBeCancel.get({ url: '/users' });
+
+      expect.assertions(2);
+      expect(spyRequest).toHaveBeenCalledTimes(1);
+      expect(spyRequest).toHaveBeenCalledWith({
+        method: 'get',
+        url: '/users',
+        cancelToken: expect.any(axios.CancelToken),
+      });
+    });
+
+    it('expect argument, when request method', async () => {
+      await resource.mayBeCancel.request({ method: 'get', url: '/users' });
 
       expect.assertions(2);
       expect(spyRequest).toHaveBeenCalledTimes(1);

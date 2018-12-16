@@ -7,6 +7,7 @@ export interface ResourceConstructor {
 }
 export declare type RequestMethod = (config?: ResourceRequestConfig) => Promise<AxiosResponse | any>;
 export interface ResourceRequestMethods {
+    request: RequestMethod;
     get?: RequestMethod;
     delete?: RequestMethod;
     head?: RequestMethod;

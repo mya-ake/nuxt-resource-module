@@ -26,6 +26,7 @@ export class Resource implements ResourceRequestMethods {
   private extendings: ResourceExtendings;
   delay: ResourceDelayProperty;
   mayBeCancel: ResourceMayBeCancelProperty;
+  request: RequestMethod;
   get?: RequestMethod;
   delete?: RequestMethod;
   head?: RequestMethod;
@@ -38,6 +39,7 @@ export class Resource implements ResourceRequestMethods {
     this.isServer = isServer;
     this.delayRequestConfigs = [];
     this.cancelSources = new Map();
+    this.request = this.createMethod('request');
     this.buildMethods(methods);
     this.delay = this.buildDelayMethods(methods);
     this.mayBeCancel = this.buildMayBeCancelMethods(methods);
@@ -68,15 +70,20 @@ export class Resource implements ResourceRequestMethods {
     });
   }
 
-  private createMethod(methodName: MethodName): Function {
+  private createMethod(methodName: MethodName): RequestMethod {
     return (async (
-      config: ResourceRequestConfig = createDefaultResourceRequestConfig(),
+      _config: ResourceRequestConfig = createDefaultResourceRequestConfig(),
     ): Promise<ResourceResponse | any> => {
+      const config =
+        methodName === 'request'
+          ? _config
+          : {
+              ..._config,
+              method: methodName,
+            };
+
       const response = await this.axios
-        .request({
-          ...config,
-          method: methodName,
-        })
+        .request(config)
         .then(
           (response): ResourceResponse => {
             return {
@@ -99,8 +106,9 @@ export class Resource implements ResourceRequestMethods {
   }
 
   private buildDelayMethods(methodNames: MethodName[]): ResourceDelayProperty {
-    const delay = {};
+    const delay = {} as ResourceDelayProperty;
     const _this = this;
+    delay.request = this.createDelayMethod('request');
     methodNames.forEach((methodName: MethodName) => {
       Object.defineProperty(delay, methodName, {
         get() {
@@ -111,7 +119,7 @@ export class Resource implements ResourceRequestMethods {
     return delay;
   }
 
-  private createDelayMethod(methodName: MethodName): Function {
+  private createDelayMethod(methodName: MethodName): RequestMethod {
     const method = this[methodName];
     if (typeof method !== 'function') {
       throw new Error(`Undefined method: ${methodName}`);
@@ -132,8 +140,9 @@ export class Resource implements ResourceRequestMethods {
   private buildMayBeCancelMethods(
     methodNames: MethodName[],
   ): ResourceMayBeCancelProperty {
-    const mayBeCancel = {};
+    const mayBeCancel = {} as ResourceMayBeCancelProperty;
     const _this = this;
+    mayBeCancel.request = this.createMayBeCancelMethod('request');
     methodNames.forEach((methodName: MethodName) => {
       Object.defineProperty(mayBeCancel, methodName, {
         get() {
@@ -144,7 +153,7 @@ export class Resource implements ResourceRequestMethods {
     return mayBeCancel;
   }
 
-  private createMayBeCancelMethod(methodName): Function {
+  private createMayBeCancelMethod(methodName): RequestMethod {
     const method = this[methodName];
     if (typeof method !== 'function') {
       throw new Error(`Undefined method: ${methodName}`);

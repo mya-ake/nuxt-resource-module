@@ -57,6 +57,7 @@ var Resource = /** @class */ (function () {
         this.isServer = isServer;
         this.delayRequestConfigs = [];
         this.cancelSources = new Map();
+        this.request = this.createMethod('request');
         this.buildMethods(methods);
         this.delay = this.buildDelayMethods(methods);
         this.mayBeCancel = this.buildMayBeCancelMethods(methods);
@@ -99,20 +100,24 @@ var Resource = /** @class */ (function () {
     };
     Resource.prototype.createMethod = function (methodName) {
         var _this_1 = this;
-        return (function (config) {
-            if (config === void 0) { config = createDefaultResourceRequestConfig(); }
+        return (function (_config) {
+            if (_config === void 0) { _config = createDefaultResourceRequestConfig(); }
             return __awaiter(_this_1, void 0, void 0, function () {
-                var response;
+                var config, response;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
-                        case 0: return [4 /*yield*/, this.axios
-                                .request(__assign({}, config, { method: methodName }))
-                                .then(function (response) {
-                                return __assign({}, response, { canceled: false, delayed: false });
-                            })
-                                .catch(function (err) {
-                                return __assign({}, err.response, { canceled: axios.isCancel(err) });
-                            })];
+                        case 0:
+                            config = methodName === 'request'
+                                ? _config
+                                : __assign({}, _config, { method: methodName });
+                            return [4 /*yield*/, this.axios
+                                    .request(config)
+                                    .then(function (response) {
+                                    return __assign({}, response, { canceled: false, delayed: false });
+                                })
+                                    .catch(function (err) {
+                                    return __assign({}, err.response, { canceled: axios.isCancel(err) });
+                                })];
                         case 1:
                             response = _a.sent();
                             return [2 /*return*/, this.processResponse(response, config)];
@@ -124,6 +129,7 @@ var Resource = /** @class */ (function () {
     Resource.prototype.buildDelayMethods = function (methodNames) {
         var delay = {};
         var _this = this;
+        delay.request = this.createDelayMethod('request');
         methodNames.forEach(function (methodName) {
             Object.defineProperty(delay, methodName, {
                 get: function () {
@@ -157,6 +163,7 @@ var Resource = /** @class */ (function () {
     Resource.prototype.buildMayBeCancelMethods = function (methodNames) {
         var mayBeCancel = {};
         var _this = this;
+        mayBeCancel.request = this.createMayBeCancelMethod('request');
         methodNames.forEach(function (methodName) {
             Object.defineProperty(mayBeCancel, methodName, {
                 get: function () {
