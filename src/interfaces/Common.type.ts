@@ -1,1 +1,8 @@
-export type MethodName = 'get' | 'delete' | 'head' | 'post' | 'put' | 'patch';
+export type MethodName =
+  | 'request'
+  | 'get'
+  | 'delete'
+  | 'head'
+  | 'post'
+  | 'put'
+  | 'patch';

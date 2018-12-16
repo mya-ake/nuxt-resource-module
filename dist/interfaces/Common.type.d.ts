@@ -1,1 +1,1 @@
-export declare type MethodName = 'get' | 'delete' | 'head' | 'post' | 'put' | 'patch';
+export declare type MethodName = 'request' | 'get' | 'delete' | 'head' | 'post' | 'put' | 'patch';

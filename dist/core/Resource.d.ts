@@ -7,6 +7,7 @@ export declare class Resource implements ResourceRequestMethods {
     private extendings;
     delay: ResourceDelayProperty;
     mayBeCancel: ResourceMayBeCancelProperty;
+    request: RequestMethod;
     get?: RequestMethod;
     delete?: RequestMethod;
     head?: RequestMethod;
