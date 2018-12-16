@@ -117,6 +117,7 @@ export const actions = {
 
 ##### Default request methods
 
+- $\_resource.request(config: ResourceRequestConfig)
 - $\_resource.get(config: ResourceRequestConfig)
 - $\_resource.delete(config: ResourceRequestConfig)
 - $\_resource.head(config: ResourceRequestConfig)
@@ -135,6 +136,7 @@ server: デフォルトメソッドを使ったときと同じです。使った
 client: When used with asyncData or fetch, it is called after the transition is confirmed.  
 server: Same as default method. Send a request when called.
 
+- $\_resource.delay.request(config: ResourceRequestConfig)
 - $\_resource.delay.get(config: ResourceRequestConfig)
 - $\_resource.delay.delete(config: ResourceRequestConfig)
 - $\_resource.delay.head(config: ResourceRequestConfig)
@@ -147,6 +149,7 @@ server: Same as default method. Send a request when called.
 キャンセル可能なリクエストになります。`$_resource.cancel()`と一緒に使います。  
 It will be a request that can be canceled. Use with `$_resource.cancel()`.
 
+- $\_resource.mayBeCancel.request(config: ResourceRequestConfig)
 - $\_resource.mayBeCancel.get(config: ResourceRequestConfig)
 - $\_resource.mayBeCancel.delete(config: ResourceRequestConfig)
 - $\_resource.mayBeCancel.head(config: ResourceRequestConfig)
@@ -233,6 +236,8 @@ export default ({ app }) => {
       status: response.status,
       isError: response.status !== 200,
       data: response.data,
+      delayed: response.delayed,
+      canceled: response.canceled,
     };
   };
   $_resource.setEachProcessor(eachProcessor);
