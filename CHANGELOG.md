@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="0.5.1"></a>
+## [0.5.1](https://github.com/mya-ake/nuxt-resource-module/compare/v0.5.0...v0.5.1) (2018-12-28)
+
+
+### Bug Fixes
+
+* Add delayed property when cancel [#13](https://github.com/mya-ake/nuxt-resource-module/issues/13) ([#14](https://github.com/mya-ake/nuxt-resource-module/issues/14)) ([ffe9c20](https://github.com/mya-ake/nuxt-resource-module/commit/ffe9c20))
+
+
+
 <a name="0.5.0"></a>
 # [0.5.0](https://github.com/mya-ake/nuxt-resource-module/compare/v0.4.1...v0.5.0) (2018-12-16)
 
