@@ -250,7 +250,10 @@ describe('core/Resource', () => {
       const request = resource.mayBeCancel.get({ url: '/users/may-be-cancel' });
       resource.cancel('/users/may-be-cancel');
       const response = await request;
+
+      expect.assertions(2);
       expect(response.canceled).toBe(true);
+      expect(response.delayed).toBe(false);
     });
   });
 

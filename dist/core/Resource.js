@@ -116,7 +116,7 @@ var Resource = /** @class */ (function () {
                                     return __assign({}, response, { canceled: false, delayed: false });
                                 })
                                     .catch(function (err) {
-                                    return __assign({}, err.response, { canceled: axios.isCancel(err) });
+                                    return __assign({}, err.response, { canceled: axios.isCancel(err), delayed: false });
                                 })];
                         case 1:
                             response = _a.sent();
