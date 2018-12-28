@@ -98,6 +98,7 @@ export class Resource implements ResourceRequestMethods {
             return {
               ...err.response,
               canceled: axios.isCancel(err),
+              delayed: false,
             } as ResourceResponse;
           },
         );
