@@ -179,14 +179,14 @@ export class Resource implements ResourceRequestMethods {
     config: ResourceRequestConfig,
   ): ResourceResponse {
     const { dataMapper, processor } = config;
-    if (typeof dataMapper === 'function') {
-      response.data = dataMapper(response);
-    }
     if (typeof this.extendings.eachProcessor === 'function') {
       response = this.extendings.eachProcessor(response);
     }
     if (typeof processor === 'function') {
       response = processor(response);
+    }
+    if (typeof dataMapper === 'function') {
+      response.data = dataMapper(response);
     }
     return response;
   }

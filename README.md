@@ -68,18 +68,18 @@ export default {
     // delay request
     const response = await app.$_resource.delay.get({
       url: '/users',
-      // response.data mapper
-      dataMapper(response: ResourceResponse) {
-        const { delayed, data } = response;
-        return delayed ? { users: [] } : { users: data.users };
-      },
-
       // response
       processor(response: ResourceResponse) {
         if (response.status !== 200) {
           error({ statusCode: response.status, message: 'Request error' })
         }
         return response;
+      },
+
+      // response.data mapper (after processor)
+      dataMapper(response: ResourceResponse) {
+        const { delayed, data } = response;
+        return delayed ? { users: [] } : { users: data.users };
       },
     });
   },
@@ -185,8 +185,8 @@ Extends [AxiosRequestConfig](https://github.com/axios/axios#request-config)
 ```TypeScript
 export interface ResourceRequestConfig extends AxiosRequestConfig {
   url: string;
-  dataMapper?: (response: ResourceResponse) => any;
   processor?: (response: ResourceResponse) => any;
+  dataMapper?: (response: ResourceResponse) => any;
 }
 ```
 
@@ -198,15 +198,15 @@ e.g.
   params: { // Can also use axios config
     query: 'Alice',
   },
-  dataMapper(response) {  // option
-    const { delayed, data } = response;
-    return delayed ? { users: [] } : { users: data.users };
-  },
   processor(response) { // option
     if (response.status !== 200) {
       error({ statusCode: response.status, message: 'Request error' })
     }
     return response;
+  },
+  dataMapper(response) {  // option
+    const { delayed, data } = response;
+    return delayed ? { users: [] } : { users: data.users };
   },
 }
 ```

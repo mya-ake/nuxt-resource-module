@@ -201,14 +201,14 @@ var Resource = /** @class */ (function () {
     };
     Resource.prototype.processResponse = function (response, config) {
         var dataMapper = config.dataMapper, processor = config.processor;
-        if (typeof dataMapper === 'function') {
-            response.data = dataMapper(response);
-        }
         if (typeof this.extendings.eachProcessor === 'function') {
             response = this.extendings.eachProcessor(response);
         }
         if (typeof processor === 'function') {
             response = processor(response);
+        }
+        if (typeof dataMapper === 'function') {
+            response.data = dataMapper(response);
         }
         return response;
     };
